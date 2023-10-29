@@ -643,8 +643,8 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		var myScores []struct {
-			score   sql.NullInt64 `db:"score"`
-			ClassID string        `db:"class_id"`
+			score   int    `db:"score"`
+			ClassID string `db:"class_id"`
 		}
 		err = h.DB.Select(&myScores, query, args...)
 		if err != nil {
@@ -666,11 +666,13 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			classScoresMap[submissionsCount.ClassID].Submitters = submissionsCount.SubmissionsCount
 		}
 		for _, myScore := range myScores {
-			if myScore.score.Valid {
-				score := int(myScore.score.Int64)
-				classScoresMap[myScore.ClassID].Score = &score
-				myTotalScore += score
-			}
+			classScoresMap[myScore.ClassID].Score = &myScore.score
+			myTotalScore += myScore.score
+			// if myScore.score.Valid {
+			// 	score := int(myScore.score.Int64)
+			// 	classScoresMap[myScore.ClassID].Score = &score
+			// 	myTotalScore += score
+			// }
 		}
 
 		// for _, class := range classes {
