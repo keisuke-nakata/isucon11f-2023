@@ -1495,15 +1495,8 @@ func (h *handlers) AddAnnouncement(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid format.")
 	}
 
-	tx, err := h.DB.Beginx()
-	if err != nil {
-		c.Logger().Error(err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	defer tx.Rollback()
-
 	var count int
-	if err := tx.Get(&count, "SELECT COUNT(*) FROM `courses` WHERE `id` = ?", req.CourseID); err != nil {
+	if err := h.DB.Get(&count, "SELECT COUNT(*) FROM `courses` WHERE `id` = ?", req.CourseID); err != nil {
 		c.Logger().Error(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -1511,9 +1504,8 @@ func (h *handlers) AddAnnouncement(c echo.Context) error {
 		return c.String(http.StatusNotFound, "No such course.")
 	}
 
-	if _, err := tx.Exec("INSERT INTO `announcements` (`id`, `course_id`, `title`, `message`) VALUES (?, ?, ?, ?)",
+	if _, err := h.DB.Exec("INSERT INTO `announcements` (`id`, `course_id`, `title`, `message`) VALUES (?, ?, ?, ?)",
 		req.ID, req.CourseID, req.Title, req.Message); err != nil {
-		_ = tx.Rollback()
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == uint16(mysqlErrNumDuplicateEntry) {
 			var announcement Announcement
 			if err := h.DB.Get(&announcement, "SELECT * FROM `announcements` WHERE `id` = ?", req.ID); err != nil {
@@ -1533,24 +1525,97 @@ func (h *handlers) AddAnnouncement(c echo.Context) error {
 	query := "SELECT `users`.* FROM `users`" +
 		" JOIN `registrations` ON `users`.`id` = `registrations`.`user_id`" +
 		" WHERE `registrations`.`course_id` = ?"
-	if err := tx.Select(&targets, query, req.CourseID); err != nil {
+	if err := h.DB.Select(&targets, query, req.CourseID); err != nil {
 		c.Logger().Error(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	for _, user := range targets {
-		if _, err := tx.Exec("INSERT INTO `unread_announcements` (`announcement_id`, `user_id`) VALUES (?, ?)", req.ID, user.ID); err != nil {
-			c.Logger().Error(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
+	type UnreadAnnouncement struct {
+		AnnouncementID string `db:"announcement_id"`
+		UserID         string `db:"user_id"`
 	}
-
-	if err := tx.Commit(); err != nil {
+	query = "INSERT INTO `unread_announcements` (`announcement_id`, `user_id`) VALUES (:announcement_id, :user_id)"
+	unreadAnnouncements := make([]UnreadAnnouncement, 0, len(targets))
+	for _, user := range targets {
+		unreadAnnouncements = append(unreadAnnouncements, UnreadAnnouncement{
+			AnnouncementID: req.ID,
+			UserID:         user.ID,
+		})
+	}
+	query, args, err := sqlx.Named(query, unreadAnnouncements)
+	if err != nil {
+		c.Logger().Error(err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	_, err = h.DB.Exec(query, args...)
+	if err != nil {
 		c.Logger().Error(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
 	return c.NoContent(http.StatusCreated)
+
+	// var req AddAnnouncementRequest
+	// if err := c.Bind(&req); err != nil {
+	// 	return c.String(http.StatusBadRequest, "Invalid format.")
+	// }
+
+	// tx, err := h.DB.Beginx()
+	// if err != nil {
+	// 	c.Logger().Error(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
+	// defer tx.Rollback()
+
+	// var count int
+	// if err := tx.Get(&count, "SELECT COUNT(*) FROM `courses` WHERE `id` = ?", req.CourseID); err != nil {
+	// 	c.Logger().Error(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
+	// if count == 0 {
+	// 	return c.String(http.StatusNotFound, "No such course.")
+	// }
+
+	// if _, err := tx.Exec("INSERT INTO `announcements` (`id`, `course_id`, `title`, `message`) VALUES (?, ?, ?, ?)",
+	// 	req.ID, req.CourseID, req.Title, req.Message); err != nil {
+	// 	_ = tx.Rollback()
+	// 	if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == uint16(mysqlErrNumDuplicateEntry) {
+	// 		var announcement Announcement
+	// 		if err := h.DB.Get(&announcement, "SELECT * FROM `announcements` WHERE `id` = ?", req.ID); err != nil {
+	// 			c.Logger().Error(err)
+	// 			return c.NoContent(http.StatusInternalServerError)
+	// 		}
+	// 		if announcement.CourseID != req.CourseID || announcement.Title != req.Title || announcement.Message != req.Message {
+	// 			return c.String(http.StatusConflict, "An announcement with the same id already exists.")
+	// 		}
+	// 		return c.NoContent(http.StatusCreated)
+	// 	}
+	// 	c.Logger().Error(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
+
+	// var targets []User
+	// query := "SELECT `users`.* FROM `users`" +
+	// 	" JOIN `registrations` ON `users`.`id` = `registrations`.`user_id`" +
+	// 	" WHERE `registrations`.`course_id` = ?"
+	// if err := tx.Select(&targets, query, req.CourseID); err != nil {
+	// 	c.Logger().Error(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
+
+	// for _, user := range targets {
+	// 	if _, err := tx.Exec("INSERT INTO `unread_announcements` (`announcement_id`, `user_id`) VALUES (?, ?)", req.ID, user.ID); err != nil {
+	// 		c.Logger().Error(err)
+	// 		return c.NoContent(http.StatusInternalServerError)
+	// 	}
+	// }
+
+	// if err := tx.Commit(); err != nil {
+	// 	c.Logger().Error(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
+
+	// return c.NoContent(http.StatusCreated)
 }
 
 type AnnouncementDetail struct {
