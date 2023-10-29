@@ -1141,17 +1141,28 @@ func (h *handlers) SubmitAssignment(c echo.Context) error {
 		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	data, err := io.ReadAll(file)
+	// data, err := io.ReadAll(file)
+	// if err != nil {
+	// 	c.Logger().Error(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
+
+	dst := AssignmentsDirectory + classID + "-" + userID + ".pdf"
+	out, err := os.Create(dst)
 	if err != nil {
 		c.Logger().Error(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-
-	dst := AssignmentsDirectory + classID + "-" + userID + ".pdf"
-	if err := os.WriteFile(dst, data, 0666); err != nil {
+	defer out.Close()
+	_, err = io.Copy(out, file)
+	if err != nil {
 		c.Logger().Error(err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
+	// if err := os.WriteFile(dst, data, 0666); err != nil {
+	// 	c.Logger().Error(err)
+	// 	return c.NoContent(http.StatusInternalServerError)
+	// }
 
 	return c.NoContent(http.StatusNoContent)
 
