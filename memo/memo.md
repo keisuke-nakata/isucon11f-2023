@@ -54,14 +54,14 @@ bench インスタンスで以下を実行：
 ./benchmarker -target IP_ADDRESS -tls
 ```
 
-##########
-# 以下コピー
-##########
-
 # snapshot 準備
 
 適当な場所から snapshot をパクってきて、config を書き換える。
 そして init.sh を実行
+
+# makefile を書き換える
+
+`COMPILER=/home/isucon/local/go/bin/go`
 
 # profiler を仕込む
 
@@ -135,12 +135,12 @@ func getProfileStop(c echo.Context) error {
 ```console
 $ cd $REPO_ROOT_DIR/go
 $ git pull origin main
-$ $GO build -o isucondition
-$ sudo systemctl restart isucondition.go
+$ make all
+$ sudo systemctl restart isucholar.go
 $ curl "http://localhost:${GO_PORT}/api/pprof/start?path=/home/isucon/pprof/"
 # ここで適当にアプリにアクセスして、profile を取得
 $ curl "http://localhost:${GO_PORT}/api/pprof/stop"
-$ $GO tool pprof --pdf /home/isucon/pprof/cpu.pprof > /home/isucon/pprof/prof.pdf
+$ /home/isucon/local/go/bin/go tool pprof --pdf /home/isucon/pprof/cpu.pprof > /home/isucon/pprof/prof.pdf
 ```
 
 # nginx の log を json にする
@@ -150,6 +150,10 @@ $ $GO tool pprof --pdf /home/isucon/pprof/cpu.pprof > /home/isucon/pprof/prof.pd
 # mysql の slow log query を on にする
 
 適当に過去の設定をパクってくる
+
+##########
+# 以下コピー
+##########
 
 # mysql を appserver3 に任せる
 

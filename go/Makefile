@@ -1,5 +1,6 @@
 DEST=$(PWD)/isucholar
-COMPILER=go
+# COMPILER=go
+COMPILER=/home/isucon/local/go/bin/go
 GO_FILES=$(wildcard ./*.go ./**/*.go)
 
 .PHONY: all

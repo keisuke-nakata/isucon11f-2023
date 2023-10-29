@@ -5,7 +5,7 @@ readonly OTHER_APPSERVER_PRIVATE_IP_LIST=("10.11.0.102" "10.11.0.103")
 
 readonly HOME_DIR=/home/isucon
 readonly REPO_ROOT_DIR=${HOME_DIR}/webapp
-readonly SNAPSHOT_SCRIPT_DIR=${HOME_DIR}/snapshot
+readonly SNAPSHOT_SCRIPT_DIR=${HOME_DIR}/webapp/snapshot
 readonly RESULT_BASE_DIR=${REPO_ROOT_DIR}/result
 readonly CONF_DIR=${REPO_ROOT_DIR}/conf
 readonly PPORF_DIR=${HOME_DIR}/pprof
@@ -43,7 +43,7 @@ readonly GO_SERVICE_NAME=isucholar.go
 # alp
 readonly UUID_REGEX="[0-9a-f\-]{36}"
 # readonly ALP_PATTERN="/api/condition/${UUID_REGEX}$,/api/isu/${UUID_REGEX}$,/api/isu/${UUID_REGEX}/graph$,/api/isu/${UUID_REGEX}/icon$"
-readonly ALP_PATTERN='""'
+readonly ALP_PATTERN="\"\""
 
 # isuview (to use isuview, please specify the following environment variables)
 # readonly ISUVIEW_URL="https://isuview.y011d4.com"
