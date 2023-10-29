@@ -662,26 +662,6 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			myScoresMap[myScore.ClassID] = myScore
 		}
 
-		// classScoresMap := make(map[string]*ClassScore, len(classes))
-		// for _, class := range classes {
-		// 	classScore := ClassScore{
-		// 		ClassID:    class.ID,
-		// 		Part:       class.Part,
-		// 		Title:      class.Title,
-		// 		Score:      nil,
-		// 		Submitters: 0,
-		// 	}
-		// 	classScoresMap[class.ID] = &classScore
-		// 	classScores = append(classScores, &classScore)
-		// }
-		// for _, submissionsCount := range submissionsCounts {
-		// 	classScoresMap[submissionsCount.ClassID].Submitters = submissionsCount.SubmissionsCount
-		// }
-		// for _, myScore := range myScores {
-		// 	classScoresMap[myScore.ClassID].Score = &myScore.Score
-		// 	myTotalScore += myScore.Score
-		// }
-
 		for _, class := range classes {
 			submissionsCount, ok := submissionsCountsMap[class.ID]
 			var submitters int
@@ -707,30 +687,6 @@ func (h *handlers) GetGrades(c echo.Context) error {
 				Score:      score,
 				Submitters: submitters,
 			})
-
-			// var myScore sql.NullInt64
-			// if err := h.DB.Get(&myScore, "SELECT `submissions`.`score` FROM `submissions` WHERE `user_id` = ? AND `class_id` = ?", userID, class.ID); err != nil && err != sql.ErrNoRows {
-			// 	c.Logger().Error(err)
-			// 	return c.NoContent(http.StatusInternalServerError)
-			// } else if err == sql.ErrNoRows || !myScore.Valid {
-			// 	classScores = append(classScores, ClassScore{
-			// 		ClassID:    class.ID,
-			// 		Part:       class.Part,
-			// 		Title:      class.Title,
-			// 		Score:      nil,
-			// 		Submitters: submitters,
-			// 	})
-			// } else {
-			// 	score := int(myScore.Int64)
-			// 	myTotalScore += score
-			// 	classScores = append(classScores, ClassScore{
-			// 		ClassID:    class.ID,
-			// 		Part:       class.Part,
-			// 		Title:      class.Title,
-			// 		Score:      &score,
-			// 		Submitters: submitters,
-			// 	})
-			// }
 		}
 
 		// for _, class := range classes {
