@@ -34,6 +34,7 @@ readonly profile_result_dir=$node_result_dir/profile
 mkdir -p $profile_result_dir
 cp $PPORF_DIR/cpu.pprof ${profile_result_dir}/
 $GO tool pprof --pdf $PPORF_DIR/cpu.pprof > ${profile_result_dir}/prof.pdf
+go-torch -b $PPORF_DIR/cpu.pprof -f $PPORF_DIR/prof.svg
 
 # alp
 readonly alp_result_dir=$node_result_dir/alp
