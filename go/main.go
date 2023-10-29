@@ -612,81 +612,83 @@ func (h *handlers) GetGrades(c echo.Context) error {
 		classScores := make([]ClassScore, 0, len(classes))
 		var myTotalScore int
 
-		classIDs := make([]string, 0, len(classes))
-		for _, class := range classes {
-			classIDs = append(classIDs, class.ID)
-		}
-		input := map[string]interface{}{
-			"classIDs": classIDs,
-			"userID":   userID,
-		}
-		query = "SELECT COUNT(*) AS submissions_count, class_id FROM `submissions` WHERE `class_id` IN (:classIDs) GROUP BY `class_id`"
-		query, args, err := NamedInSql(query, input, h.DB)
-		if err != nil {
-			c.Logger().Error(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		type SubmissionCount struct {
-			ClassID          string `db:"class_id"`
-			SubmissionsCount int    `db:"submissions_count"`
-		}
-		var submissionsCounts []SubmissionCount
-		err = h.DB.Select(&submissionsCounts, query, args...)
-		if err != nil {
-			c.Logger().Error(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		submissionsCountsMap := make(map[string]SubmissionCount, len(submissionsCounts))
-		for _, submissionsCount := range submissionsCounts {
-			submissionsCountsMap[submissionsCount.ClassID] = submissionsCount
-		}
-
-		query = "SELECT score, class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
-		query, args, err = NamedInSql(query, input, h.DB)
-		if err != nil {
-			c.Logger().Error(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		type MyScore struct {
-			Score   int    `db:"score"`
-			ClassID string `db:"class_id"`
-		}
-		var myScores []MyScore
-		err = h.DB.Select(&myScores, query, args...)
-		if err != nil {
-			c.Logger().Error(err)
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		myScoresMap := make(map[string]MyScore, len(myScores))
-		for _, myScore := range myScores {
-			myScoresMap[myScore.ClassID] = myScore
-		}
-
-		for _, class := range classes {
-			submissionsCount, ok := submissionsCountsMap[class.ID]
-			var submitters int
-			if !ok {
-				submitters = 0
-			} else {
-				submitters = submissionsCount.SubmissionsCount
+		if len(classes) > 0 {
+			classIDs := make([]string, 0, len(classes))
+			for _, class := range classes {
+				classIDs = append(classIDs, class.ID)
+			}
+			input := map[string]interface{}{
+				"classIDs": classIDs,
+				"userID":   userID,
+			}
+			query = "SELECT COUNT(*) AS submissions_count, class_id FROM `submissions` WHERE `class_id` IN (:classIDs) GROUP BY `class_id`"
+			query, args, err := NamedInSql(query, input, h.DB)
+			if err != nil {
+				c.Logger().Error(err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			type SubmissionCount struct {
+				ClassID          string `db:"class_id"`
+				SubmissionsCount int    `db:"submissions_count"`
+			}
+			var submissionsCounts []SubmissionCount
+			err = h.DB.Select(&submissionsCounts, query, args...)
+			if err != nil {
+				c.Logger().Error(err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			submissionsCountsMap := make(map[string]SubmissionCount, len(submissionsCounts))
+			for _, submissionsCount := range submissionsCounts {
+				submissionsCountsMap[submissionsCount.ClassID] = submissionsCount
 			}
 
-			myScore2, ok := myScoresMap[class.ID]
-			var score *int
-			if !ok {
-				score = nil
-			} else {
-				score = &myScore2.Score
-				myTotalScore += myScore2.Score
+			query = "SELECT score, class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
+			query, args, err = NamedInSql(query, input, h.DB)
+			if err != nil {
+				c.Logger().Error(err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			type MyScore struct {
+				Score   int    `db:"score"`
+				ClassID string `db:"class_id"`
+			}
+			var myScores []MyScore
+			err = h.DB.Select(&myScores, query, args...)
+			if err != nil {
+				c.Logger().Error(err)
+				return c.NoContent(http.StatusInternalServerError)
+			}
+			myScoresMap := make(map[string]MyScore, len(myScores))
+			for _, myScore := range myScores {
+				myScoresMap[myScore.ClassID] = myScore
 			}
 
-			classScores = append(classScores, ClassScore{
-				ClassID:    class.ID,
-				Part:       class.Part,
-				Title:      class.Title,
-				Score:      score,
-				Submitters: submitters,
-			})
+			for _, class := range classes {
+				submissionsCount, ok := submissionsCountsMap[class.ID]
+				var submitters int
+				if !ok {
+					submitters = 0
+				} else {
+					submitters = submissionsCount.SubmissionsCount
+				}
+
+				myScore2, ok := myScoresMap[class.ID]
+				var score *int
+				if !ok {
+					score = nil
+				} else {
+					score = &myScore2.Score
+					myTotalScore += myScore2.Score
+				}
+
+				classScores = append(classScores, ClassScore{
+					ClassID:    class.ID,
+					Part:       class.Part,
+					Title:      class.Title,
+					Score:      score,
+					Submitters: submitters,
+				})
+			}
 		}
 
 		// for _, class := range classes {
