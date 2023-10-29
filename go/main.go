@@ -636,7 +636,7 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
-		query = "SELECT score, class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
+		query = "SELECT `score`, class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
 		query, args, err = NamedInSql(query, input, h.DB)
 		if err != nil {
 			c.Logger().Error(err)
@@ -649,6 +649,9 @@ func (h *handlers) GetGrades(c echo.Context) error {
 		err = h.DB.Select(&myScores, query, args...)
 		if err != nil {
 			c.Logger().Error(err)
+			c.Logger().Error(query)
+			c.Logger().Error(input)
+			c.Logger().Error(args)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
