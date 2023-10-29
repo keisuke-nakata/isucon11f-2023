@@ -151,6 +151,13 @@ $ /home/isucon/local/go/bin/go tool pprof --pdf /home/isucon/pprof/cpu.pprof > /
 
 適当に過去の設定をパクってくる
 
+# aaaa
+
+go get github.com/uber/go-torch
+git clone https://github.com/brendangregg/FlameGraph.git
+パス通す
+go-torch -b cpu.pprof -f test.svg
+
 ##########
 # 以下コピー
 ##########
