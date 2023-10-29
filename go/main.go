@@ -661,6 +661,7 @@ func (h *handlers) GetGrades(c echo.Context) error {
 				ClassID: class.ID,
 				Part:    class.Part,
 				Title:   class.Title,
+				Score:   nil,
 			}
 			classScoresMap[class.ID] = &classScore
 			classScores = append(classScores, &classScore)
