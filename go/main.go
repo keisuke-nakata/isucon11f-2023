@@ -19,6 +19,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/pkg/profile"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,6 +34,8 @@ const (
 type handlers struct {
 	DB *sqlx.DB
 }
+
+var profiler interface{ Stop() }
 
 func main() {
 	e := echo.New()
@@ -83,6 +86,10 @@ func main() {
 			announcementsAPI.GET("/:announcementID", h.GetAnnouncementDetail)
 		}
 	}
+
+	// pprof
+	e.GET("/api/pprof/start", getProfileStart)
+	e.GET("/api/pprof/stop", getProfileStop)
 
 	e.Logger.Error(e.StartServer(e.Server))
 }
@@ -1541,4 +1548,15 @@ func (h *handlers) GetAnnouncementDetail(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, announcement)
+}
+
+func getProfileStart(c echo.Context) error {
+	path := c.QueryParam("path")
+	profiler = profile.Start(profile.ProfilePath(path))
+	return c.JSON(http.StatusOK, "pprof start ok")
+}
+
+func getProfileStop(c echo.Context) error {
+	profiler.Stop()
+	return c.JSON(http.StatusOK, "pprof stop ok")
 }

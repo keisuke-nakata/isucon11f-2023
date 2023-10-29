@@ -54,14 +54,18 @@ bench インスタンスで以下を実行：
 ./benchmarker -target IP_ADDRESS -tls
 ```
 
-##########
-# 以下コピー
-##########
-
 # snapshot 準備
 
 適当な場所から snapshot をパクってきて、config を書き換える。
 そして init.sh を実行
+
+# makefile を書き換える
+
+`COMPILER=/home/isucon/local/go/bin/go`
+
+##########
+# 以下コピー
+##########
 
 # profiler を仕込む
 
