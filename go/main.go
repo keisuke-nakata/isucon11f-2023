@@ -641,21 +641,26 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			submissionsCountsMap[submissionsCount.ClassID] = submissionsCount
 		}
 
-		// query = "SELECT score, class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
-		// query, args, err = NamedInSql(query, input, h.DB)
-		// if err != nil {
-		// 	c.Logger().Error(err)
-		// 	return c.NoContent(http.StatusInternalServerError)
-		// }
-		// var myScores []struct {
-		// 	Score   int    `db:"score"`
-		// 	ClassID string `db:"class_id"`
-		// }
-		// err = h.DB.Select(&myScores, query, args...)
-		// if err != nil {
-		// 	c.Logger().Error(err)
-		// 	return c.NoContent(http.StatusInternalServerError)
-		// }
+		query = "SELECT score, class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
+		query, args, err = NamedInSql(query, input, h.DB)
+		if err != nil {
+			c.Logger().Error(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		type MyScore struct {
+			Score   int    `db:"score"`
+			ClassID string `db:"class_id"`
+		}
+		var myScores []MyScore
+		err = h.DB.Select(&myScores, query, args...)
+		if err != nil {
+			c.Logger().Error(err)
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		myScoresMap := make(map[string]MyScore, len(myScores))
+		for _, myScore := range myScores {
+			myScoresMap[myScore.ClassID] = myScore
+		}
 
 		// classScoresMap := make(map[string]*ClassScore, len(classes))
 		// for _, class := range classes {
@@ -678,11 +683,6 @@ func (h *handlers) GetGrades(c echo.Context) error {
 		// }
 
 		for _, class := range classes {
-			// var submissionsCount int
-			// if err := h.DB.Get(&submissionsCount, "SELECT COUNT(*) FROM `submissions` WHERE `class_id` = ?", class.ID); err != nil {
-			// 	c.Logger().Error(err)
-			// 	return c.NoContent(http.StatusInternalServerError)
-			// }
 			submissionsCount, ok := submissionsCountsMap[class.ID]
 			var submitters int
 			if !ok {
@@ -691,29 +691,46 @@ func (h *handlers) GetGrades(c echo.Context) error {
 				submitters = submissionsCount.SubmissionsCount
 			}
 
-			var myScore sql.NullInt64
-			if err := h.DB.Get(&myScore, "SELECT `submissions`.`score` FROM `submissions` WHERE `user_id` = ? AND `class_id` = ?", userID, class.ID); err != nil && err != sql.ErrNoRows {
-				c.Logger().Error(err)
-				return c.NoContent(http.StatusInternalServerError)
-			} else if err == sql.ErrNoRows || !myScore.Valid {
-				classScores = append(classScores, ClassScore{
-					ClassID:    class.ID,
-					Part:       class.Part,
-					Title:      class.Title,
-					Score:      nil,
-					Submitters: submitters,
-				})
+			myScore2, ok := myScoresMap[class.ID]
+			var score *int
+			if !ok {
+				score = nil
 			} else {
-				score := int(myScore.Int64)
-				myTotalScore += score
-				classScores = append(classScores, ClassScore{
-					ClassID:    class.ID,
-					Part:       class.Part,
-					Title:      class.Title,
-					Score:      &score,
-					Submitters: submitters,
-				})
+				score = &myScore2.Score
+				myTotalScore += myScore2.Score
 			}
+
+			classScores = append(classScores, ClassScore{
+				ClassID:    class.ID,
+				Part:       class.Part,
+				Title:      class.Title,
+				Score:      score,
+				Submitters: submitters,
+			})
+
+			// var myScore sql.NullInt64
+			// if err := h.DB.Get(&myScore, "SELECT `submissions`.`score` FROM `submissions` WHERE `user_id` = ? AND `class_id` = ?", userID, class.ID); err != nil && err != sql.ErrNoRows {
+			// 	c.Logger().Error(err)
+			// 	return c.NoContent(http.StatusInternalServerError)
+			// } else if err == sql.ErrNoRows || !myScore.Valid {
+			// 	classScores = append(classScores, ClassScore{
+			// 		ClassID:    class.ID,
+			// 		Part:       class.Part,
+			// 		Title:      class.Title,
+			// 		Score:      nil,
+			// 		Submitters: submitters,
+			// 	})
+			// } else {
+			// 	score := int(myScore.Int64)
+			// 	myTotalScore += score
+			// 	classScores = append(classScores, ClassScore{
+			// 		ClassID:    class.ID,
+			// 		Part:       class.Part,
+			// 		Title:      class.Title,
+			// 		Score:      &score,
+			// 		Submitters: submitters,
+			// 	})
+			// }
 		}
 
 		// for _, class := range classes {
