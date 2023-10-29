@@ -34,7 +34,7 @@ readonly profile_result_dir=$node_result_dir/profile
 mkdir -p $profile_result_dir
 cp $PPORF_DIR/cpu.pprof ${profile_result_dir}/
 $GO tool pprof --pdf $PPORF_DIR/cpu.pprof > ${profile_result_dir}/prof.pdf
-/home/isucon/go/bin/go-torch -b $PPORF_DIR/cpu.pprof -f $PPORF_DIR/prof.svg
+PATH=$PATH:/home/isucon/local/go/bin:/home/isucon/bin/FlameGraph:/home/isucon/go/bin go-torch -b $PPORF_DIR/cpu.pprof -f $PPORF_DIR/prof.svg
 
 # alp
 readonly alp_result_dir=$node_result_dir/alp
