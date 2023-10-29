@@ -636,14 +636,14 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
-		query = "SELECT class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
+		query = "SELECT score, class_id FROM `submissions` WHERE `user_id` = :userID AND `class_id` IN (:classIDs)"
 		query, args, err = NamedInSql(query, input, h.DB)
 		if err != nil {
 			c.Logger().Error(err)
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		var myScores []struct {
-			// score   int    `db:"score"`
+			Score   int    `db:"score"`
 			ClassID string `db:"class_id"`
 		}
 		err = h.DB.Select(&myScores, query, args...)
@@ -668,15 +668,15 @@ func (h *handlers) GetGrades(c echo.Context) error {
 		for _, submissionsCount := range submissionsCounts {
 			classScoresMap[submissionsCount.ClassID].Submitters = submissionsCount.SubmissionsCount
 		}
-		// for _, myScore := range myScores {
-		// 	classScoresMap[myScore.ClassID].Score = &myScore.score
-		// 	myTotalScore += myScore.score
-		// 	// if myScore.score.Valid {
-		// 	// 	score := int(myScore.score.Int64)
-		// 	// 	classScoresMap[myScore.ClassID].Score = &score
-		// 	// 	myTotalScore += score
-		// 	// }
-		// }
+		for _, myScore := range myScores {
+			classScoresMap[myScore.ClassID].Score = &myScore.Score
+			myTotalScore += myScore.Score
+			// if myScore.score.Valid {
+			// 	score := int(myScore.score.Int64)
+			// 	classScoresMap[myScore.ClassID].Score = &score
+			// 	myTotalScore += score
+			// }
+		}
 
 		// for _, class := range classes {
 		// 	var submissionsCount int
