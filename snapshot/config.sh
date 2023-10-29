@@ -41,8 +41,8 @@ readonly GO_SERVICE_NAME=isucholar.go
 
 # alp
 readonly UUID_REGEX="[0-9a-f\-]{36}"
-# readonly ALP_PATTERN="/api/condition/${UUID_REGEX}$,/api/isu/${UUID_REGEX}$,/api/isu/${UUID_REGEX}/graph$,/api/isu/${UUID_REGEX}/icon$"
-readonly ALP_PATTERN="\"\""
+readonly ULID_REGEX="[0-9a-zA-Z]{26}"
+readonly ALP_PATTERN="/api/courses/${ULID_REGEX}/classes/${ULID_REGEX}/assignments/scores$,/api/courses/${ULID_REGEX}/classes/${ULID_REGEX}/assignments/export$,/api/courses/${ULID_REGEX}/classes/${ULID_REGEX}/assignments$,/api/courses/${ULID_REGEX}/classes$,/api/announcements/${ULID_REGEX}$,/api/courses/${ULID_REGEX}/status$,/api/courses/${ULID_REGEX}$"
 
 # isuview (to use isuview, please specify the following environment variables)
 # readonly ISUVIEW_URL="https://isuview.y011d4.com"
