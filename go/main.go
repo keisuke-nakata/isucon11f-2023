@@ -658,10 +658,11 @@ func (h *handlers) GetGrades(c echo.Context) error {
 		classScoresMap := make(map[string]*ClassScore, len(classes))
 		for _, class := range classes {
 			classScore := ClassScore{
-				ClassID: class.ID,
-				Part:    class.Part,
-				Title:   class.Title,
-				Score:   nil,
+				ClassID:    class.ID,
+				Part:       class.Part,
+				Title:      class.Title,
+				Score:      nil,
+				Submitters: 0,
 			}
 			classScoresMap[class.ID] = &classScore
 			classScores = append(classScores, &classScore)
