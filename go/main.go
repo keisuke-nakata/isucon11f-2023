@@ -620,7 +620,7 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			"classIDs": classIDs,
 			"userID":   userID,
 		}
-		query = "SELECT COUNT(*) AS submissions_count, class_id FROM `submissions` GROUP BY `class_id` WHERE `class_id` IN (:classIDs)"
+		query = "SELECT COUNT(*) AS submissions_count, class_id FROM `submissions` WHERE `class_id` IN (:classIDs) GROUP BY `class_id`"
 		query, args, err := NamedInSql(query, input, h.DB)
 		if err != nil {
 			c.Logger().Error(err)
