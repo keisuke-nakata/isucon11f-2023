@@ -151,31 +151,30 @@ $ /home/isucon/local/go/bin/go tool pprof --pdf /home/isucon/pprof/cpu.pprof > /
 
 適当に過去の設定をパクってくる
 
-# aaaa
+# mysql を appserver3 に任せる
 
-go tool pprof -http=":8081" cpu.pprof
+`/etc/mysql/mysql.conf.d/mysqld.cnf` で bind-address = 0.0.0.0 とする (初期は127.0.0.1)
+(mysqlx-bind-address とかいうのもあったので、こっちも 0.0.0.0 にしておく)
+
+appserver3 で `sudo mysql -u root -D isucholar -p` でログインし、以下を実行：
+```sql
+SELECT Host, User FROM mysql.user;
+CREATE USER 'isucon'@'10.11.0.101' IDENTIFIED BY 'isucon';
+GRANT ALL ON isucholar.* to 'isucon'@'10.11.0.101';
+CREATE USER 'isucon'@'10.11.0.102' IDENTIFIED BY 'isucon';
+GRANT ALL ON isucholar.* to 'isucon'@'10.11.0.102';
+```
+
+`sudo systemctl restart mysql` で再起動してから、
+appserver1,2 で `mysql -u isucon -D isucholar -h 10.11.0.103 -p` でログインできればOK.
+
+env.sh で MYSQL_HOST を 10.11.0.103 へ
+
 
 ##########
 # 以下コピー
 ##########
 
-# mysql を appserver3 に任せる
-
-`/etc/mysql/mariadb.conf.d/50-server.cnf` で bind-address = 0.0.0.0 とする (初期は127.0.0.1)
-
-appserver3 で `mysql -u isucon -D isucondition -p` でログインし、以下を実行：
-```sql
-SELECT Host, User FROM mysql.user;
-GRANT ALL ON isucondition.* to 'isucon'@'192.168.0.11' IDENTIFIED BY 'isucon';
-GRANT ALL ON isucondition.* to 'isucon'@'192.168.0.12' IDENTIFIED BY 'isucon';
-```
-
-`sudo systemctl restart mysql` で再起動してから、
-appserver1,2 で `mysql -u isucon -D isucondition -h 192.168.0.13 -p` でログインできればOK.
-
-初期化用データが gitignore されているので、.gitignore を編集してから sql/1_InitData.sql を push しておく。
-
-env.sh で MYSQL_HOST を 192.168.0.13 へ
 
 # nginx で load balancer を仕込む
 
