@@ -33,8 +33,7 @@ readonly ENV_SRC=${CONF_DIR}/env.sh
 readonly ENV_DEST=${HOME_DIR}/env.sh
 
 # go
-# readonly GO="${HOME_DIR}/local/go/bin/go"
-readonly GO="go"
+readonly GO="/home/isucon/local/go/bin/go"
 readonly GO_PORT=7000
 readonly GO_APP_DIR=$REPO_ROOT_DIR/go
 # readonly GO_APP_FILENAME=isucholar  # makefile が提供されてるならそっちを使ったほうが良いと思う
