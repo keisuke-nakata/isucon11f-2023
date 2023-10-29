@@ -643,7 +643,7 @@ func (h *handlers) GetGrades(c echo.Context) error {
 			return c.NoContent(http.StatusInternalServerError)
 		}
 		var myScores []struct {
-			score   int    `db:"score"`
+			score   int    `db:"Score"`
 			ClassID string `db:"class_id"`
 		}
 		err = h.DB.Select(&myScores, query, args...)
