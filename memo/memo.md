@@ -153,10 +153,7 @@ $ /home/isucon/local/go/bin/go tool pprof --pdf /home/isucon/pprof/cpu.pprof > /
 
 # aaaa
 
-go get github.com/uber/go-torch
-git clone https://github.com/brendangregg/FlameGraph.git
-パス通す
-go-torch -b cpu.pprof -f test.svg
+go tool pprof -http=":8081" cpu.pprof
 
 ##########
 # 以下コピー
