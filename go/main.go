@@ -668,15 +668,15 @@ func (h *handlers) GetGrades(c echo.Context) error {
 		for _, submissionsCount := range submissionsCounts {
 			classScoresMap[submissionsCount.ClassID].Submitters = submissionsCount.SubmissionsCount
 		}
-		for _, myScore := range myScores {
-			classScoresMap[myScore.ClassID].Score = &myScore.score
-			myTotalScore += myScore.score
-			// if myScore.score.Valid {
-			// 	score := int(myScore.score.Int64)
-			// 	classScoresMap[myScore.ClassID].Score = &score
-			// 	myTotalScore += score
-			// }
-		}
+		// for _, myScore := range myScores {
+		// 	classScoresMap[myScore.ClassID].Score = &myScore.score
+		// 	myTotalScore += myScore.score
+		// 	// if myScore.score.Valid {
+		// 	// 	score := int(myScore.score.Int64)
+		// 	// 	classScoresMap[myScore.ClassID].Score = &score
+		// 	// 	myTotalScore += score
+		// 	// }
+		// }
 
 		// for _, class := range classes {
 		// 	var submissionsCount int
